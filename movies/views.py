@@ -5,6 +5,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from movies.permissions import IsOwnerOrAdmin
+
 from .models import Movie, Director, Genre
 from .serializers import (
     MovieSerializer,
@@ -15,6 +18,8 @@ from .filters import MovieFilter
 
 
 class MovieListCreateView(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         movies = Movie.objects.all()
@@ -33,7 +38,7 @@ class MovieListCreateView(APIView):
         serializer = MovieSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
+            serializer.save(owner=request.user)
             return Response(
                 serializer.data,
                 status=status.HTTP_201_CREATED,
@@ -47,13 +52,20 @@ class MovieListCreateView(APIView):
 
 class MovieDetailView(APIView):
 
+    permission_classes = [
+        IsAuthenticatedOrReadOnly,
+        IsOwnerOrAdmin
+    ]
+
     def get(self, request, pk):
         movie = get_object_or_404(Movie, pk=pk)
+        self.check_object_permissions(request, movie)
         serializer = MovieSerializer(movie)
         return Response(serializer.data)
 
     def put(self, request, pk):
         movie = get_object_or_404(Movie, pk=pk)
+        self.check_object_permissions(request, movie)
         serializer = MovieSerializer(movie, data=request.data)
 
         if serializer.is_valid():
@@ -67,11 +79,14 @@ class MovieDetailView(APIView):
 
     def delete(self, request, pk):
         movie = get_object_or_404(Movie, pk=pk)
+        self.check_object_permissions(request, movie)
         movie.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class PopularMoviesView(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         movies = Movie.objects.filter(
@@ -84,6 +99,8 @@ class PopularMoviesView(APIView):
 
 
 class DirectorListCreateView(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         directors = Director.objects.all().order_by("name")
@@ -107,6 +124,8 @@ class DirectorListCreateView(APIView):
 
 
 class DirectorDetailView(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, pk):
         director = get_object_or_404(Director, pk=pk)
@@ -143,6 +162,8 @@ class DirectorDetailView(APIView):
 
 class GenreListCreateView(APIView):
 
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, request):
         genres = Genre.objects.all().order_by("name")
         serializer = GenreSerializer(genres, many=True)
@@ -165,6 +186,8 @@ class GenreListCreateView(APIView):
 
 
 class GenreDetailView(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request, pk):
         genre = get_object_or_404(Genre, pk=pk)

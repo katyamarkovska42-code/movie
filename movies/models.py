@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 
 
 class Director(models.Model):
@@ -42,6 +43,13 @@ class Movie(models.Model):
         Genre,
         related_name="movies",
         blank=True,
+    )
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="movies"
     )
 
     def __str__(self):
