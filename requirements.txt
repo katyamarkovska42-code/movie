@@ -6,3 +6,5 @@ djangorestframework==3.18.3
 python-dotenv==1.2.4
 sqlparse==0.6.0
 tzdata==2026.5
+djangorestframework_simplejwt==5.5.1
+PyJWT==2.15.1
