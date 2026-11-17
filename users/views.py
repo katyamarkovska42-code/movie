@@ -7,6 +7,7 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from users.serializers import RegistrationSerializer
+from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 User = get_user_model()
 
@@ -20,6 +21,29 @@ class RegisterView(generics.CreateAPIView):
 class LogoutView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        request={
+            "application/json": {
+                "type": "object",
+                "properties": {
+                    "refresh": {
+                        "type": "string",
+                        "description": "Refresh token to blacklist."
+                    }
+                },
+                "required": ["refresh"]
+            }
+        },
+        responses={
+            205: OpenApiResponse(
+                description="Successfully logged out."
+            ),
+            400: OpenApiResponse(
+                description="Invalid, expired or missing refresh token."
+            ),
+        },
+        description="Log out the authenticated user by blacklisting the refresh token."
+    )
     def post(self, request):
         refresh_token = request.data.get("refresh")
 
